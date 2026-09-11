@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Do You Love Me?</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Floating Hearts Background Animation */
+    .heart-bg {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 20px;
+      animation: float 6s linear infinite;
+      z-index: 0;
+      user-select: none;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.85);
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(255, 75, 110, 0.2);
+      backdrop-filter: blur(8px);
+      text-align: center;
+      max-width: 450px;
+      width: 90%;
+      z-index: 10;
+      transition: all 0.3s ease;
+    }
+
+    .card-img {
+      width: 170px;
+      height: 170px;
+      object-fit: cover;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #ff3366;
+      font-size: 26px;
+      margin-bottom: 25px;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      min-height: 80px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease, font-size 0.2s ease, padding 0.2s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-yes {
+      background-color: #ff3366;
+      color: white;
+    }
+
+    .btn-yes:hover {
+      background-color: #e02855;
+      transform: scale(1.05);
+    }
+
+    .btn-no {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .btn-no:hover {
+      background-color: #5a6268;
+    }
+
+    /* Heartfelt message view */
+    .hidden {
+      display: none;
+    }
+
+    .heartfelt-card h2 {
+      color: #ff3366;
+      font-size: 28px;
+      margin-bottom: 15px;
+    }
+
+    .heartfelt-card p {
+      color: #4a4a4a;
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .heart-icon {
+      font-size: 50px;
+      animation: pulse 1.2s infinite;
+      display: inline-block;
+      margin-top: 10px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Hearts -->
+  <div id="heart-container"></div>
+
+  <!-- Main Question Card -->
+  <div class="container" id="questionCard">
+    <img id="displayImg" class="card-img" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Y5Y2ExYnZ1ZnY0aDJxeTl6dW1pMnA3dW5uYmRwZWVrdWxsZWdqeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LpDmM2w9a451m/giphy.gif" alt="Cute Animal">
+    <h1 id="questionText">Do you love me? ❤️</h1>
+    
+    <div class="btn-group">
+      <button class="btn-yes" id="yesBtn" onclick="handleYes()">Yes! 🥰</button>
+      <button class="btn-no" id="noBtn" onclick="handleNo()">No 😢</button>
+    </div>
+  </div>
+
+  <!-- Final Heartfelt Message Card -->
+  <div class="container hidden" id="messageCard">
+    <div class="heartfelt-card">
+      <div class="heart-icon">💖</div>
+      <h2>I knew it!</h2>
+      <p id="heartfeltMessage">
+        You mean absolute world to me. My days are brighter, happier, and filled with joy whenever you are around. Thank you for being you and for loving me back! 🌹✨
+      </p>
+    </div>
+  </div>
+
+  <!-- Canvas for Celebration Confetti -->
+  <canvas id="confetti" style="position:fixed;top:0;left:0;pointer-events:none;width:100vw;height:100vh;z-index:99;"></canvas>
+
+  <script>
+    // Progressive Questions & Images on clicking "No"
+    const prompts = [
+      {
+        question: "Are you sure? Think again! 🥺",
+        image: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWY2ZmptOG1wZHVsZnR2OHBicTZtczVudThreWV3ZTF2YnkxdWk1bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/9Y5BbDSkSTiY8/giphy.gif"
+      },
+      {
+        question: "Are you really, REALLY sure? 💔",
+        image: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnJscXU4bmZnbXVjZXBmbXllYmpzcGdpaDRxOWg5bm1yd3llYmI5eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ISOckXU1vnEGQ/giphy.gif"
+      },
+      {
+        question: "Don't do this to me... Please? 😭",
+        image: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnB2aXdpNzIxaGF4cGlsZzl4OHBnNG4yNXRhZXRndDFwb3R5N3pzZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/d22UJ44aTOQFwdX2/giphy.gif"
+      },
+      {
+        question: "If you say no, I'll be so sad... 🥺👉👈",
+        image: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbzRwbWNycGFmOHIzeWNpdWZtbGZ6c3oxMmxsMmNlMWhrZjBjcGtyaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/OPU6wzx8JrHna/giphy.gif"
+      },
+      {
+        question: "Give me one more chance? Pretty please? 💕",
+        image: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmNwcms1NzByOWk5NG5ocmtmYndsc2N1OWQ2ODF4aWhsdWxlOXNmZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/10tI4bhGYTO3C/giphy.gif"
+      }
+    ];
+
+    let promptIndex = 0;
+    let yesScale = 1;
+    let paddingSize = 12;
+    let fontSize = 18;
+
+    function handleNo() {
+      const questionText = document.getElementById("questionText");
+      const displayImg = document.getElementById("displayImg");
+      const yesBtn = document.getElementById("yesBtn");
+
+      // Update question text and image
+      questionText.innerText = prompts[promptIndex].question;
+      displayImg.src = prompts[promptIndex].image;
+
+      // Increase scale of Yes button to make it easier to click
+      yesScale += 0.35;
+      paddingSize += 4;
+      fontSize += 3;
+      
+      yesBtn.style.transform = `scale(${yesScale})`;
+      yesBtn.style.padding = `${paddingSize}px ${paddingSize * 2}px`;
+      yesBtn.style.fontSize = `${fontSize}px`;
+
+      // Cycle through prompts
+      promptIndex = (promptIndex + 1) % prompts.length;
+    }
+
+    function handleYes() {
+      document.getElementById("questionCard").classList.add("hidden");
+      document.getElementById("messageCard").classList.remove("hidden");
+      startConfetti();
+    }
+
+    // Floating background hearts
+    function createHearts() {
+      const heartContainer = document.getElementById('heart-container');
+      const hearts = ['❤️', '💖', '💗', '💓', '💕'];
+      
+      for (let i = 0; i < 25; i++) {
+        const heart = document.createElement('div');
+        heart.classList.add('heart-bg');
+        heart.innerText = hearts[Math.floor(Math.random() * hearts.length)];
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.animationDuration = (Math.random() * 3 + 3) + 's';
+        heart.style.animationDelay = Math.random() * 5 + 's';
+        heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+        heartContainer.appendChild(heart);
+      }
+    }
+
+    // Canvas Confetti Effect
+    function startConfetti() {
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+      const colors = ['#ff3366', '#ff9a9e', '#ffcc00', '#4cd137', '#00a8ff'];
+
+      for (let i = 0; i < 120; i++) {
+        particles.push({
+          x: canvas.width / 2,
+          y: canvas.height / 2,
+          vx: (Math.random() - 0.5) * 12,
+          vy: (Math.random() - 0.5) * 12 - 3,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          gravity: 0.15,
+          alpha: 1
+        });
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+
+        particles.forEach(p => {
+          if (p.alpha > 0) {
+            active = true;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.alpha -= 0.01;
+
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+
+        if (active) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      animate();
+    }
+
+    window.onload = createHearts;
+  </script>
+</body>
+</html>
